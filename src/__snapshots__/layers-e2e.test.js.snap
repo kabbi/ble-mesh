@@ -1,0 +1,228 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`e2e exchange by Android-nRF-Mesh-Library incoming config appkey add 1`] = `
+Array [
+  Object {
+    "appKey": undefined,
+    "meta": Object {
+      "from": 2047,
+      "seq": 3,
+      "to": 1,
+      "ttl": 100,
+      "type": "access",
+    },
+    "payload": Object {
+      "appKey": Object {
+        "data": Array [
+          99,
+          150,
+          71,
+          113,
+          115,
+          79,
+          189,
+          118,
+          227,
+          180,
+          5,
+          25,
+          209,
+          217,
+          74,
+          72,
+        ],
+        "type": "Buffer",
+      },
+      "netKeyAppKeyIndex": 0,
+    },
+    "type": "ConfigAppKeyAdd",
+  },
+]
+`;
+
+exports[`e2e exchange by Android-nRF-Mesh-Library incoming config appkey status 2 1`] = `
+Array [
+  Object {
+    "appKey": undefined,
+    "meta": Object {
+      "from": 1,
+      "seq": 4,
+      "to": 2047,
+      "ttl": 7,
+      "type": "access",
+    },
+    "payload": Object {
+      "netKeyAppKeyIndex": 0,
+      "status": 0,
+    },
+    "type": "ConfigAppKeyStatus",
+  },
+]
+`;
+
+exports[`e2e exchange by Android-nRF-Mesh-Library incoming config composition data get 1`] = `
+Array [
+  Object {
+    "appKey": undefined,
+    "meta": Object {
+      "from": 2047,
+      "seq": 1,
+      "to": 1,
+      "ttl": 100,
+      "type": "access",
+    },
+    "payload": Object {
+      "page": 255,
+    },
+    "type": "ConfigCompositionDataGet",
+  },
+]
+`;
+
+exports[`e2e exchange by Android-nRF-Mesh-Library incoming config composition data status 1`] = `
+Array [
+  Object {
+    "appKey": undefined,
+    "meta": Object {
+      "from": 1,
+      "seq": 0,
+      "to": 2047,
+      "ttl": 7,
+      "type": "access",
+    },
+    "payload": Object {
+      "data": Object {
+        "CID": 1475,
+        "CRPL": 10,
+        "PID": 0,
+        "VID": 0,
+        "elements": Array [
+          Object {
+            "locationDescriptor": 0,
+            "sigModelIDs": Array [
+              0,
+              2,
+              4096,
+              4098,
+            ],
+            "sigModelIDsCount": 4,
+            "vendorModelIDs": Array [
+              268436931,
+            ],
+            "vendorModelIDsCount": 1,
+          },
+        ],
+        "features": Object {
+          "Friend": true,
+          "LowPower": false,
+          "Proxy": true,
+          "Relay": false,
+        },
+      },
+      "page": 0,
+    },
+    "type": "ConfigCompositionDataStatus",
+  },
+]
+`;
+
+exports[`e2e exchange by Android-nRF-Mesh-Library incoming config model app bind 1`] = `
+Array [
+  Object {
+    "appKey": undefined,
+    "meta": Object {
+      "from": 2047,
+      "seq": 5,
+      "to": 1,
+      "ttl": 100,
+      "type": "access",
+    },
+    "payload": Object {
+      "appKeyIndex": 0,
+      "elementAddr": 1,
+      "modelId": 4096,
+    },
+    "type": "ConfigModelAppBind",
+  },
+]
+`;
+
+exports[`e2e exchange by Android-nRF-Mesh-Library incoming config model app status 1`] = `
+Array [
+  Object {
+    "appKey": undefined,
+    "meta": Object {
+      "from": 1,
+      "seq": 5,
+      "to": 2047,
+      "ttl": 7,
+      "type": "access",
+    },
+    "payload": Object {
+      "appKeyIndex": 0,
+      "elementAddr": 1,
+      "modelId": 4096,
+      "status": 0,
+    },
+    "type": "ConfigModelAppStatus",
+  },
+]
+`;
+
+exports[`e2e exchange by Android-nRF-Mesh-Library incoming generic onoff get 1`] = `
+Array [
+  Object {
+    "appKey": "test",
+    "meta": Object {
+      "from": 2047,
+      "seq": 8,
+      "to": 1,
+      "ttl": 100,
+      "type": "access",
+    },
+    "payload": Object {},
+    "type": "GenericOnOffGet",
+  },
+]
+`;
+
+exports[`e2e exchange by Android-nRF-Mesh-Library incoming generic onoff set 1`] = `
+Array [
+  Object {
+    "appKey": "test",
+    "meta": Object {
+      "from": 2047,
+      "seq": 6,
+      "to": 1,
+      "ttl": 100,
+      "type": "access",
+    },
+    "payload": Object {
+      "delay": 5,
+      "status": "on",
+      "transactionId": 5,
+      "transitionTime": 0,
+    },
+    "type": "GenericOnOffSet",
+  },
+]
+`;
+
+exports[`e2e exchange by Android-nRF-Mesh-Library incoming generic onoff status 1`] = `
+Array [
+  Object {
+    "appKey": "test",
+    "meta": Object {
+      "from": 1,
+      "seq": 6,
+      "to": 2047,
+      "ttl": 7,
+      "type": "access",
+    },
+    "payload": Object {
+      "currentStatus": "on",
+    },
+    "type": "GenericOnOffStatus",
+  },
+]
+`;

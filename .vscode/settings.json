@@ -1,0 +1,4 @@
+{
+  "eslint.enable": false,
+  "flow.useNPMPackagedFlow": true
+}

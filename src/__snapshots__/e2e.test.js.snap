@@ -1,0 +1,189 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`e2e exchange - manual by Android-nRF-Mesh-Library parses unknown message #1 1`] = `
+Object {
+  "data": Array [
+    128,
+    8,
+    255,
+  ],
+  "type": "Buffer",
+}
+`;
+
+exports[`e2e exchange - manual by Android-nRF-Mesh-Library parses unknown message #2 1`] = `
+Object {
+  "blockAck": 7,
+  "byFriendlyNode": false,
+  "dummy": 0,
+  "seqAuth": 0,
+}
+`;
+
+exports[`e2e exchange - manual by Android-nRF-Mesh-Library parses unknown message #3 1`] = `
+Object {
+  "data": Array [
+    0,
+    0,
+    0,
+    0,
+    99,
+    150,
+    71,
+    113,
+    115,
+    79,
+    189,
+    118,
+    227,
+    180,
+    5,
+    25,
+    209,
+    217,
+    74,
+    72,
+  ],
+  "type": "Buffer",
+}
+`;
+
+exports[`e2e exchange - manual by Android-nRF-Mesh-Library parses unknown message #5 1`] = `
+Object {
+  "data": Array [
+    128,
+    61,
+    1,
+    0,
+    0,
+    0,
+    0,
+    16,
+  ],
+  "type": "Buffer",
+}
+`;
+
+exports[`e2e exchange - manual by Android-nRF-Mesh-Library parses unknown message #6 1`] = `
+Object {
+  "data": Array [
+    128,
+    62,
+    0,
+    1,
+    0,
+    0,
+    0,
+    0,
+    16,
+  ],
+  "type": "Buffer",
+}
+`;
+
+exports[`e2e exchange - manual by Android-nRF-Mesh-Library parses unknown message #7 1`] = `
+Object {
+  "data": Array [
+    130,
+    2,
+    1,
+    5,
+    0,
+    5,
+  ],
+  "type": "Buffer",
+}
+`;
+
+exports[`e2e exchange - manual by Android-nRF-Mesh-Library parses unknown response #1 1`] = `
+Object {
+  "data": Array [
+    2,
+    0,
+    195,
+    5,
+    0,
+    0,
+    0,
+    0,
+    10,
+    0,
+    6,
+    0,
+    0,
+    0,
+    4,
+    1,
+    0,
+    0,
+    2,
+    0,
+    0,
+    16,
+    2,
+    16,
+    195,
+    5,
+    0,
+    16,
+  ],
+  "type": "Buffer",
+}
+`;
+
+exports[`e2e exchange - manual by Android-nRF-Mesh-Library parses unknown response #1 2`] = `
+Object {
+  "data": Object {
+    "CID": 1475,
+    "CRPL": 10,
+    "PID": 0,
+    "VID": 0,
+    "elements": Array [
+      Object {
+        "locationDescriptor": 0,
+        "sigModelIDs": Array [
+          0,
+          2,
+          4096,
+          4098,
+        ],
+        "sigModelIDsCount": 4,
+        "vendorModelIDs": Array [
+          268436931,
+        ],
+        "vendorModelIDsCount": 1,
+      },
+    ],
+    "features": Object {
+      "Friend": true,
+      "LowPower": false,
+      "Proxy": true,
+      "Relay": false,
+    },
+  },
+  "page": 0,
+}
+`;
+
+exports[`e2e exchange - manual by Android-nRF-Mesh-Library parses unknown response #3 1`] = `
+Object {
+  "blockAck": 3,
+  "byFriendlyNode": false,
+  "dummy": 0,
+  "seqAuth": 3,
+}
+`;
+
+exports[`e2e exchange - manual by Android-nRF-Mesh-Library parses unknown response #4 1`] = `
+Object {
+  "data": Array [
+    128,
+    3,
+    0,
+    0,
+    0,
+    0,
+  ],
+  "type": "Buffer",
+}
+`;

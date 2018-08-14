@@ -1,0 +1,90 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`parsers Advertisement parses corrupted ad 1`] = `
+Object {
+  "type": 2,
+}
+`;
+
+exports[`parsers Advertisement parses network ad 1`] = `
+Object {
+  "networkID": Object {
+    "data": Array [
+      54,
+      55,
+      213,
+      21,
+      35,
+      83,
+      144,
+      40,
+    ],
+    "type": "Buffer",
+  },
+  "type": 0,
+}
+`;
+
+exports[`parsers ProxyPDU parses first PDU I've ever received in my life 1`] = `
+Object {
+  "payload": Object {
+    "payload": Object {
+      "auth": Object {
+        "body": Object {
+          "data": Array [
+            0,
+            54,
+            55,
+            213,
+            21,
+            35,
+            83,
+            144,
+            40,
+            0,
+            0,
+            0,
+            0,
+          ],
+          "type": "Buffer",
+        },
+        "cmac": Object {
+          "data": Array [
+            123,
+            207,
+            166,
+            172,
+            220,
+            118,
+            35,
+            187,
+          ],
+          "type": "Buffer",
+        },
+      },
+      "flags": Object {
+        "_reserved": 0,
+        "ivUpdate": false,
+        "keyRefresh": false,
+      },
+      "ivIndex": 0,
+      "networkID": Object {
+        "data": Array [
+          54,
+          55,
+          213,
+          21,
+          35,
+          83,
+          144,
+          40,
+        ],
+        "type": "Buffer",
+      },
+    },
+    "type": "SecureNetwork",
+  },
+  "sar": "Complete",
+  "type": "Beacon",
+}
+`;

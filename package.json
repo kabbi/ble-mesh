@@ -1,0 +1,36 @@
+{
+  "name": "mesh-first-try",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "blink": "flow-node blink.js",
+    "test": "jest"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "aes-js": "^3.1.0",
+    "async": "^2.6.0",
+    "buffer-xor": "^2.0.2",
+    "debug": "^3.1.0",
+    "jbinary": "^2.1.3",
+    "noble": "^1.9.0",
+    "node-aes-ccm": "^1.0.2",
+    "node-aes-cmac": "^0.1.1"
+  },
+  "devDependencies": {
+    "flow-bin": "^0.78.0",
+    "flow-remove-types": "^1.2.3",
+    "flow-typed": "^2.3.0",
+    "jest": "^22.4.2"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "setupTestFrameworkScriptFile": "./src/utils/test-utils.js",
+    "transform": {
+      "^.+\\.js$": "./src/utils/jest-flow-transform"
+    }
+  }
+}
