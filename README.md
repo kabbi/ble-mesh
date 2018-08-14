@@ -8,7 +8,7 @@ Try it now (if you have provisioned mesh network):
 ```bash
 cp ./keychain.json.example ./keychain.json
 vi ./keychain.json # Add your mesh keys here
-npm run blink 0x0001 # Specify the target device with Generic OnOff model here
+DEBUG=app:* npm run blink 0x0001 # Specify the target device with Generic OnOff model here
 # Voila, the blink should commence
 ```
 
@@ -33,6 +33,7 @@ I was mostly using [Nordic nRF Mesh app](https://github.com/NordicSemiconductor/
 
 Interesting code places:
 - `src/layers/*.js` - low-level mesh network layers implementation, handling binary parsing, security, etc.
+- `src/layers-e2e.test.js` - example of end-to-end usage: message sending and receiving
 - `src/models/*.js` - model message definitions, add your vendor and sig models here
 - `src/utils/mesh-crypto.js` - main crypto implementation
 - `src/packets.js` - base packet structure definitions
