@@ -11,13 +11,13 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "@abandonware/noble": "^1.9.2-6",
+    "@kabbi/aes-ccm": "^1.0.3",
     "aes-js": "^3.1.0",
     "async": "^2.6.0",
     "buffer-xor": "^2.0.2",
     "debug": "^3.1.0",
     "jbinary": "^2.1.3",
-    "noble": "^1.9.0",
-    "node-aes-ccm": "^1.0.2",
     "node-aes-cmac": "^0.1.1"
   },
   "devDependencies": {

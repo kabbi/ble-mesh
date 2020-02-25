@@ -3,7 +3,7 @@
 const crypto = require('crypto');
 const bufferXor = require('buffer-xor');
 const { aesCmac } = require('node-aes-cmac');
-const aesCCM = require('node-aes-ccm');
+const aesCCM = require('@kabbi/aes-ccm');
 const aesjs = require('aes-js');
 
 import type { NetworkPDU } from '../packet-types';

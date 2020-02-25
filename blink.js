@@ -1,6 +1,6 @@
 // @flow
 
-const noble = require('noble');
+const noble = require('@abandonware/noble');
 const debug = require('debug')('app:explorer');
 const jBinary = require('jbinary');
 
@@ -73,7 +73,7 @@ function connect(peripheral) {
   const accessLayer = new AccessLayer();
 
   // FIXME: Set the latest seq here
-  lowerLayer.seq = 150;
+  lowerLayer.seq = 0x000a;
 
   // Connect all the layers together
   networkLayer.on('incoming', networkMessage => {

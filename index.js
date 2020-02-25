@@ -1,6 +1,6 @@
 // @flow
 
-const noble = require('noble');
+const noble = require('@abandonware/noble');
 const debug = require('debug')('app:explorer');
 const jBinary = require('jbinary');
 
