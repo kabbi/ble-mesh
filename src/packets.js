@@ -177,7 +177,7 @@ module.exports = {
     },
   },
 
-  ProxyPayload: 'NetworkPDU',
+  ProxyPayload: 'blob',
 
   NetworkPayload: 'blob',
 
@@ -249,6 +249,12 @@ module.exports = {
     seqAuth: 13,
     dummy: ['const', 2, 0],
     blockAck: 'uint32',
+  },
+
+  Heartbeat: {
+    rfu: ['const', 1, 0],
+    initialTTL: 7,
+    features: 'uint16',
   },
 
   CompositionData: {

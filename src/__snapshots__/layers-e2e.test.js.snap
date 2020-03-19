@@ -198,10 +198,8 @@ Array [
       "type": "access",
     },
     "payload": Object {
-      "delay": 5,
       "status": "on",
       "transactionId": 5,
-      "transitionTime": 0,
     },
     "type": "GenericOnOffSet",
   },

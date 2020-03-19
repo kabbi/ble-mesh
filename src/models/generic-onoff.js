@@ -17,8 +17,6 @@ exports.typeSet = {
   GenericOnOffSet: {
     status: ['enum', 'uint8', OnOrOff],
     transactionId: 'uint8',
-    transitionTime: 'uint8',
-    delay: 'uint8',
   },
   GenericOnOffSetUnacknowledged: 'GenericOnOffSet',
   GenericOnOffStatus: {

@@ -23,6 +23,12 @@ const ProxyDataOutCharUUID = '2ade';
 
 const {parse, write} = createBinary(typeSet);
 
+const addrStr = process.argv[2];
+if (!addrStr) {
+  console.error('Please, specify the target address: `npm run blink 0x0001`');
+  process.exit(1);
+}
+
 const handleError = (error: ?Error) => {
   if (!error) {
     return;
@@ -30,12 +36,6 @@ const handleError = (error: ?Error) => {
   debug('fatal error: %O', error);
   process.exit(2);
 };
-
-const addrStr = process.argv[2];
-if (!addrStr) {
-  console.error('Please, specify the target address: `npm run blink 0x0001`');
-  process.exit(1);
-}
 
 noble.on('stateChange', state => {
   if (state === 'poweredOn') {
@@ -73,7 +73,7 @@ function connect(peripheral) {
   const accessLayer = new AccessLayer();
 
   // FIXME: Set the latest seq here
-  lowerLayer.seq = 28;
+  lowerLayer.seq = 72;
 
   // Connect all the layers together
   networkLayer.on('incoming', networkMessage => {
@@ -134,7 +134,7 @@ function connect(peripheral) {
         networkLayer.on('outgoing', payload => {
           const packet = {
             sar: 'Complete',
-            type: 'Network',
+            type: 'Proxy',
             payload,
           };
           const data = write('ProxyPDU', packet);
@@ -145,18 +145,42 @@ function connect(peripheral) {
           debug('parsed incoming %O', message);
         });
 
-        // Wait for first incoming message, then start blinking
-        let status = 'off';
-        const addr = Number.parseInt(addrStr, 16);
-        setInterval(() => {
-          status = status === 'on' ? 'off' : 'on';
-          debug('sending blink %s', status);
+        // Send proxy configuration
+        setTimeout(() => {
+          debug('disabling proxy filtering');
+
+          networkLayer.handleOutgoing({
+            meta: {
+              type: 'control',
+              from: 0x7ff,
+              to: 0x00,
+              ttl: 0,
+            },
+            payload: Buffer.of(0x00, 0x01),
+            nonce: write('Nonce', {
+              type: 'Proxy',
+              payload: {
+                ivIndex: networkLayer.ivIndex,
+                src: 0x7ff,
+                seq: networkLayer.seq,
+              },
+            }),
+          });
+        }, 1000);
+
+        // Get heartbeat
+        setTimeout(() => {
+          return;
+          const addr = Number.parseInt(addrStr, 16);
           accessLayer.handleOutgoing({
-            type: 'GenericOnOffSet',
-            appKey: 'blinker',
+            type: 'ConfigHeartbeatPublicationGet',
             payload: {
-              transactionId: 42,
-              status,
+              dst: 0x07ff,
+              countLog: 0xff,
+              periodLog: 5,
+              ttl: 7,
+              features: 0,
+              netKeyIndex: 0,
             },
             meta: {
               from: 0x7ff,

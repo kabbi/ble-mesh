@@ -14,11 +14,11 @@ const {
   primitives,
 } = require('../utils/mesh-crypto');
 
-import type { NetworkPDU, NetworkMeta } from '../packet-types';
-import type { NetworkMessage } from '../message-types';
-import type { NetworkKey } from '../keychain';
+import type {NetworkPDU, NetworkMeta} from '../packet-types';
+import type {NetworkMessage} from '../message-types';
+import type {NetworkKey} from '../keychain';
 
-const { parse, write } = binary(packetTypeSet);
+const {parse, write} = binary(packetTypeSet);
 
 type Events = {
   incoming: [NetworkMessage],
@@ -112,9 +112,9 @@ class NetworkLayer extends EventEmitter<Events> {
       dst: message.meta.to,
     };
     const firstKey = this.keychain.networkKeys[0];
-    const { payload, mic } = primitives.encrypt(
+    const {payload, mic} = primitives.encrypt(
       firstKey.encryptionKey,
-      this.getNetworkNonce(meta),
+      message.nonce || this.getNetworkNonce(meta),
       networkPayload,
       meta.ctl ? 8 : 4,
     );

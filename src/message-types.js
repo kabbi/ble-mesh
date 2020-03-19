@@ -1,6 +1,6 @@
 // @flow
 
-import type { NetworkMeta } from './packet-types';
+import type {NetworkMeta} from './packet-types';
 
 export type Metadata = {
   type?: 'access' | 'control',
@@ -13,6 +13,7 @@ export type Metadata = {
 export type NetworkMessage = {
   meta: Metadata,
   payload: Buffer,
+  nonce?: Buffer,
 };
 
 export type LowerTransportMessage =

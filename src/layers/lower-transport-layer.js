@@ -6,7 +6,7 @@ const Keychain = require('../keychain');
 const binary = require('../utils/binary');
 const packetTypeSet = require('../packets');
 const EventEmitter = require('../utils/event-emitter');
-const { deriveKeyID, primitives } = require('../utils/mesh-crypto');
+const {deriveKeyID, primitives} = require('../utils/mesh-crypto');
 
 import type {
   NetworkPDU,
@@ -21,9 +21,9 @@ import type {
   LowerTransportMessage,
   Metadata,
 } from '../message-types';
-import type { AppKey } from '../keychain';
+import type {AppKey} from '../keychain';
 
-const { parse, write } = binary(packetTypeSet);
+const {parse, write} = binary(packetTypeSet);
 
 type Events = {
   incoming: [LowerTransportMessage],
@@ -59,7 +59,7 @@ class LowerTransportLayer extends EventEmitter<Events> {
   }
 
   handleIncoming(message: NetworkMessage) {
-    const { meta, payload } = message;
+    const {meta, payload} = message;
     debug('handling incoming message %h', message.payload);
     if (message.meta.type === 'control') {
       const pdu: ControlLowerTransportPDU = parse(
@@ -231,6 +231,11 @@ class LowerTransportLayer extends EventEmitter<Events> {
   }
 
   handleIncomingControl(meta: Metadata, message: ControlLowerTransportPDU) {
+    // TODO: Pass other-than-zero opcode messages to upper transport layer
+    if (message.opcode === 0x0a) {
+      debug('got heartbeat', parse('Heartbeat', message.payload));
+      return;
+    }
     if (message.opcode !== 0) {
       debug('dropping control message with unsupported opcode', message.opcode);
       return;

@@ -14,6 +14,9 @@ exports.messages = {
   0x8008: 'ConfigCompositionDataGet',
   0x803d: 'ConfigModelAppBind',
   0x803e: 'ConfigModelAppStatus',
+  0x8038: 'ConfigHeartbeatPublicationGet',
+  0x8039: 'ConfigHeartbeatPublicationSet',
+  0x06: 'ConfigHeartbeatPublicationStatus',
 };
 
 exports.typeSet = {
@@ -62,5 +65,23 @@ exports.typeSet = {
     elementAddr: 'uint16',
     appKeyIndex: 'uint16',
     modelId: 'VarInt',
+  },
+  ConfigHeartbeatPublicationGet: {},
+  ConfigHeartbeatPublicationSet: {
+    dst: 'uint16',
+    countLog: 'uint8',
+    periodLog: 'uint8',
+    ttl: 'uint8',
+    features: 'uint16',
+    netKeyIndex: 'uint16',
+  },
+  ConfigHeartbeatPublicationStatus: {
+    status: 'uint8',
+    dst: 'uint16',
+    countLog: 'uint8',
+    periodLog: 'uint8',
+    ttl: 'uint8',
+    features: 'uint16',
+    netKeyIndex: 'uint16',
   },
 };
