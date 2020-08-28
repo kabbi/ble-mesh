@@ -6,7 +6,7 @@ const jBinary = require('jbinary');
 
 const typeSet = require('./src/packets');
 const createBinary = require('./src/utils/binary');
-const {hex} = require('./src/utils/tags');
+const { hex } = require('./src/utils/tags');
 require('./src/utils/add-debug-formatters');
 
 const NetworkLayer = require('./src/layers/network-layer');
@@ -15,13 +15,13 @@ const UpperLayer = require('./src/layers/upper-transport-layer');
 const AccessLayer = require('./src/layers/access-layer');
 const Keychain = require('./src/keychain');
 
-import type {ProxyPDU} from './src/packet-types';
+import type { ProxyPDU } from './src/packet-types';
 
 const ProxyServiceUUID = '1828';
 const ProxyDataInCharUUID = '2add';
 const ProxyDataOutCharUUID = '2ade';
 
-const {parse, write} = createBinary(typeSet);
+const { parse, write } = createBinary(typeSet);
 
 const addrStr = process.argv[2];
 if (!addrStr) {
@@ -50,7 +50,7 @@ noble.on('discover', peripheral => {
   noble.stopScanning();
 
   debug('peripheral with ID %s found', peripheral.id);
-  const {advertisement} = peripheral;
+  const { advertisement } = peripheral;
 
   const [firstServiceData] = advertisement.serviceData;
   if (firstServiceData) {
@@ -71,9 +71,6 @@ function connect(peripheral) {
   const lowerLayer = new LowerLayer(keychain);
   const upperLayer = new UpperLayer();
   const accessLayer = new AccessLayer();
-
-  // FIXME: Set the latest seq here
-  lowerLayer.seq = 72;
 
   // Connect all the layers together
   networkLayer.on('incoming', networkMessage => {

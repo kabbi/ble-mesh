@@ -30,7 +30,7 @@ class AccessLayer extends EventEmitter<Events> {
     debug('handling incoming message %o', message);
     const messageType = messages[message.opcode];
     if (!messageType) {
-      debug('dropping unsupported opcode %d', message.opcode);
+      debug('dropping unsupported opcode %s', message.opcode.toString(16));
       return;
     }
     this.emit('incoming', {

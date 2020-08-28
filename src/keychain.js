@@ -49,6 +49,7 @@ class Keychain {
       ...deriveNetworkKeys(data),
       data,
     });
+    console.log(this.networkKeys);
   }
 
   addAppKey(alias: string, data: Buffer) {

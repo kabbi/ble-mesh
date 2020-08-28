@@ -22,4 +22,13 @@ describe('parsers', () => {
       expect(data).toMatchSnapshot();
     });
   });
+  describe('NetworkPDU', () => {
+    it('parses strange proxy filter response', () => {
+      const data = parse(
+        'NetworkPDU',
+        hex`4743a9ac43633a574efa2b37ab890443c04fb36764`
+      );
+      expect(data).toMatchSnapshot();
+    })
+  });
 });

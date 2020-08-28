@@ -23,6 +23,12 @@ const ProxyDataOutCharUUID = '2ade';
 
 const { parse, write } = createBinary(typeSet);
 
+const addrStr = process.argv[2];
+if (!addrStr) {
+  console.error('Please, specify the target address: `npm run blink 0x0001`');
+  process.exit(1);
+}
+
 const handleError = (error: ?Error) => {
   if (!error) {
     return;
@@ -30,12 +36,6 @@ const handleError = (error: ?Error) => {
   debug('fatal error: %O', error);
   process.exit(2);
 };
-
-const addrStr = process.argv[2];
-if (!addrStr) {
-  console.error('Please, specify the target address: `npm run blink 0x0001`');
-  process.exit(1);
-}
 
 noble.on('stateChange', state => {
   if (state === 'poweredOn') {
@@ -142,25 +142,18 @@ function connect(peripheral) {
           debug('parsed incoming %O', message);
         });
 
-        // Wait for first incoming message, then start blinking
-        let status = 'off';
-        const addr = Number.parseInt(addrStr, 16);
-        setTimeout(() => {
-          status = status === 'on' ? 'off' : 'on';
-          debug('sending blink %s', status);
+        setInterval(() => {
+          const addr = Number.parseInt(addrStr, 16);
           accessLayer.handleOutgoing({
-            type: 'GenericOnOffSet',
-            appKey: 'mi',
-            payload: {
-              transactionId: 1,
-              status,
-            },
+            type: 'SensorGet',
+            appKey: 'blinker',
+            payload: {},
             meta: {
               from: 0x7ff,
               to: addr,
             },
           });
-        }, 1000);
+        }, 5000);
       },
     );
   });

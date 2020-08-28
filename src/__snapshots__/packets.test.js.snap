@@ -25,6 +25,43 @@ Object {
 }
 `;
 
+exports[`parsers NetworkPDU parses strange proxy filter response 1`] = `
+Object {
+  "encryptedPart": Object {
+    "data": Array [
+      87,
+      78,
+      250,
+      43,
+      55,
+      171,
+      137,
+      4,
+      67,
+      192,
+      79,
+      179,
+      103,
+      100,
+    ],
+    "type": "Buffer",
+  },
+  "ivi": 0,
+  "nid": 71,
+  "obfuscatedPart": Object {
+    "data": Array [
+      67,
+      169,
+      172,
+      67,
+      99,
+      58,
+    ],
+    "type": "Buffer",
+  },
+}
+`;
+
 exports[`parsers ProxyPDU parses first PDU I've ever received in my life 1`] = `
 Object {
   "payload": Object {

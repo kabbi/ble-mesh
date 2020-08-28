@@ -1,0 +1,14 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`models/sensor parses sensor status message with two values 1`] = `
+Array [
+  Object {
+    "propertyId": "PresentDeviceOperatingTemperature",
+    "value": 29,
+  },
+  Object {
+    "propertyId": "PrecisePresentAmbientTemperature",
+    "value": 42,
+  },
+]
+`;

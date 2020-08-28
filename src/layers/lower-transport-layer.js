@@ -5,8 +5,9 @@ const debug = require('debug')('app:layers:lower');
 const Keychain = require('../keychain');
 const binary = require('../utils/binary');
 const packetTypeSet = require('../packets');
+const { nextSeq } = require('../utils/seq-provider');
 const EventEmitter = require('../utils/event-emitter');
-const {deriveKeyID, primitives} = require('../utils/mesh-crypto');
+const { deriveKeyID, primitives } = require('../utils/mesh-crypto');
 
 import type {
   NetworkPDU,
@@ -21,9 +22,9 @@ import type {
   LowerTransportMessage,
   Metadata,
 } from '../message-types';
-import type {AppKey} from '../keychain';
+import type { AppKey } from '../keychain';
 
-const {parse, write} = binary(packetTypeSet);
+const { parse, write } = binary(packetTypeSet);
 
 type Events = {
   incoming: [LowerTransportMessage],
@@ -34,7 +35,6 @@ class LowerTransportLayer extends EventEmitter<Events> {
   keychain: Keychain;
 
   ivIndex: number;
-  seq: number;
 
   receivedSegments: {
     [seqAuth: number]: {
@@ -49,17 +49,10 @@ class LowerTransportLayer extends EventEmitter<Events> {
     this.keychain = keychain;
     this.receivedSegments = {};
     this.ivIndex = 0;
-    this.seq = 0;
-  }
-
-  nextSeq() {
-    const seq = this.seq;
-    this.seq += 1;
-    return seq;
   }
 
   handleIncoming(message: NetworkMessage) {
-    const {meta, payload} = message;
+    const { meta, payload } = message;
     debug('handling incoming message %h', message.payload);
     if (message.meta.type === 'control') {
       const pdu: ControlLowerTransportPDU = parse(
@@ -96,7 +89,9 @@ class LowerTransportLayer extends EventEmitter<Events> {
       debug('dropping outgoing messages no key');
       return;
     }
-    const seq = message.meta.seq || this.nextSeq();
+    const seq =
+      message.meta.seq ||
+      nextSeq(message.meta.to.toString(16).padStart(4, '0'));
     const result = primitives.encrypt(
       key.data,
       write('Nonce', {
