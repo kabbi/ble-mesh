@@ -1,4 +1,4 @@
-# noble-mesh
+# ble-mesh
 
 This is **VERY EXPERIMENTAL**, **WORK IN PROGRESS** implementation of BLE Mesh v1.0 specification on top of `noble` library, allowing it to work on PCs, Macs and Raspberry PIs.
 
