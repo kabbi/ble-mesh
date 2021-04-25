@@ -1,3 +1,5 @@
+require('./utils/add-debug-formatters');
+
 module.exports = {
   NetworkLayer: require('./src/layers/network-layer'),
   LowerLayer: require('./src/layers/lower-transport-layer'),
