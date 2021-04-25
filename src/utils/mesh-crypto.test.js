@@ -1,5 +1,3 @@
-// @flow
-
 const {
   verifyBeacon,
   deriveBeaconKey,
@@ -86,7 +84,6 @@ describe('mesh-crypto', () => {
         hex`8b8c2851`,
         hex`2e792d3711f4b526`,
       );
-      // $FlowFixMe I don't want to check for null here =(
       expect(result.toString('hex')).toBe('00000000');
     });
   });

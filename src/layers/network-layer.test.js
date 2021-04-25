@@ -1,5 +1,3 @@
-// @flow
-
 const NetworkLayer = require("./network-layer");
 const createBinary = require("../utils/binary");
 const { hex } = require("../utils/tags");

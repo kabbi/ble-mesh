@@ -1,5 +1,3 @@
-// @flow
-
 const jBinary = require('jbinary');
 
 module.exports = typeSet => ({

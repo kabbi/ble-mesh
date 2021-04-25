@@ -1,7 +1,6 @@
 require('./add-debug-formatters');
 
 expect.extend({
-  /* Unfortunately, this seems to break flow types, so I'm not using it right now */
   toBeHex(received, argument) {
     const pass = received.toString('hex') === argument;
     if (pass) {

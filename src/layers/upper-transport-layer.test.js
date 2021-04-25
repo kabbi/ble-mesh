@@ -1,5 +1,3 @@
-// @flow
-
 const UpperTransportLayer = require('./upper-transport-layer');
 const { hex } = require('../utils/tags');
 

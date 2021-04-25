@@ -1,5 +1,3 @@
-// @flow
-
 const LowerTransportLayer = require('./lower-transport-layer');
 const { hex } = require('../utils/tags');
 const Keychain = require('../keychain');

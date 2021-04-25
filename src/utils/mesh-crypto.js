@@ -1,5 +1,3 @@
-// @flow
-
 const crypto = require('crypto');
 const bufferXor = require('buffer-xor');
 const { aesCmac } = require('node-aes-cmac');
