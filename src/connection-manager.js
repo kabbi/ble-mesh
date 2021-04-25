@@ -1,7 +1,5 @@
-// @flow
-
 const noble = require('@abandonware/noble');
-const debug = require('debug')('app:connection-manager');
+const debug = require('debug')('mesh:connection-manager');
 
 const NetworkLayer = require('./layers/network-layer');
 const LowerLayer = require('./layers/lower-transport-layer');
@@ -11,9 +9,7 @@ const EventEmitter = require('./utils/event-emitter');
 const createBinary = require('./utils/binary');
 const Keychain = require('./keychain');
 const typeSet = require('./packets');
-
-import type { ModelMessage } from './message-types';
-import type { ProxyPDU } from './packet-types';
+require('./utils/add-debug-formatters');
 
 const { parse, write } = createBinary(typeSet);
 
@@ -21,21 +17,7 @@ const ProxyServiceUUID = '1828';
 const ProxyDataInCharUUID = '2add';
 const ProxyDataOutCharUUID = '2ade';
 
-type Events = {
-  connecting: [],
-  reconnecting: [],
-  connected: [],
-  incoming: [ModelMessage],
-};
-
-class ConnectionManager extends EventEmitter<Events> {
-  keychain: Keychain;
-
-  networkLayer: NetworkLayer;
-  lowerLayer: LowerLayer;
-  upperLayer: UpperLayer;
-  accessLayer: AccessLayer;
-
+class ConnectionManager extends EventEmitter {
   constructor() {
     super();
 
@@ -110,6 +92,9 @@ class ConnectionManager extends EventEmitter<Events> {
 
   async connect(peripheral) {
     await peripheral.connectAsync();
+
+    debug('connected');
+
     const {
       characteristics: [dataIn, dataOut],
     } = await peripheral.discoverSomeServicesAndCharacteristicsAsync(
@@ -117,11 +102,16 @@ class ConnectionManager extends EventEmitter<Events> {
       [ProxyDataInCharUUID, ProxyDataOutCharUUID],
     );
 
+    peripheral.on('disconnect', async () => {
+      debug('connection lost, reconnecting');
+      await noble.startScanningAsync([ProxyServiceUUID]);
+    });
+
     // Handle incoming messages
     await dataOut.subscribeAsync();
     dataOut.on('data', data => {
       try {
-        const message: ProxyPDU = parse('ProxyPDU', data);
+        const message = parse('ProxyPDU', data);
         debug('incoming %o', message);
         if (message.type === 'Network') {
           this.networkLayer.handleIncoming(message.payload);
@@ -131,9 +121,10 @@ class ConnectionManager extends EventEmitter<Events> {
           message.payload.type === 'SecureNetwork'
         ) {
           this.networkLayer.ivIndex = message.payload.payload.ivIndex;
+          this.disableProxyFiltering();
         }
       } catch (error) {
-        debug('incoming unknown %s', data.toString('hex'));
+        debug('incoming unknown %h', data);
       }
     });
 
@@ -141,12 +132,13 @@ class ConnectionManager extends EventEmitter<Events> {
     this.networkLayer.on('outgoing', payload => {
       const packet = {
         sar: 'Complete',
-        type: 'Network',
+        type: this.nextPacketProxy ? 'Proxy' : 'Network',
         payload,
       };
       const data = write('ProxyPDU', packet);
-      debug('writing %s', data.toString('hex'));
+      debug('writing %h', data);
       dataIn.write(data, true);
+      this.nextPacketProxy = false;
     });
 
     this.accessLayer.on('incoming', message => {
@@ -155,7 +147,32 @@ class ConnectionManager extends EventEmitter<Events> {
     });
   }
 
-  send(message: ModelMessage) {
+  disableProxyFiltering() {
+    debug('disabling proxy filtering');
+    this.nextPacketProxy = true;
+    this.networkLayer.handleOutgoing({
+      meta: {
+        type: 'control',
+        from: 0x7ff,
+        to: 0x00,
+        ttl: 0,
+        seq: 0,
+      },
+      payload: Buffer.of(0x00, 0x01),
+      nonce: write('Nonce', {
+        type: 'Proxy',
+        payload: {
+          ivIndex: this.networkLayer.ivIndex,
+          src: 0x7ff,
+          seq: 0,
+        },
+      }),
+    });
+  }
+
+  send(message) {
     this.accessLayer.handleOutgoing(message);
   }
 }
+
+module.exports = ConnectionManager;

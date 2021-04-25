@@ -20,6 +20,6 @@ exports.typeSet = {
   },
   GenericOnOffSetUnacknowledged: 'GenericOnOffSet',
   GenericOnOffStatus: {
-    currentStatus: ['enum', 'uint8', OnOrOff],
+    status: ['enum', 'uint8', OnOrOff],
   },
 };

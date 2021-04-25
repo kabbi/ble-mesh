@@ -1,37 +1,25 @@
-// @flow
-
-const debug = require('debug')('app:layers:upper');
+const debug = require('debug')('mesh:layers:upper');
 
 const binary = require('../utils/binary');
 const packetTypeSet = require('../packets');
 const EventEmitter = require('../utils/event-emitter');
-const { primitives } = require('../utils/mesh-crypto');
-
-import type { NetworkPDU, NetworkMeta } from '../packet-types';
-import type { AccessMessage, LowerTransportMessage } from '../message-types';
 
 const { parse, write } = binary(packetTypeSet);
 
-type Events = {
-  incoming: [AccessMessage],
-  outgoing: [LowerTransportMessage],
-};
-
-class UpperTransportLayer extends EventEmitter<Events> {
-  constructor() {
-    super();
-  }
-
-  handleIncoming(message: LowerTransportMessage) {
+class UpperTransportLayer extends EventEmitter {
+  handleIncoming(message) {
     debug('handling incoming message %o', message);
+
     if (message.payload.length === 0) {
       debug('dropping empty message');
       return;
     }
+
     if (message.type === 'control') {
       debug('upper control messages are unsupported');
       return;
     }
+
     let opcode = 0;
     let opcodeLength = 0;
     const firstByte = message.payload[0];
@@ -45,6 +33,7 @@ class UpperTransportLayer extends EventEmitter<Events> {
       opcode = parse('uint8', message.payload);
       opcodeLength = 1;
     }
+
     this.emit('incoming', {
       payload: message.payload.slice(opcodeLength),
       appKey: message.appKey,
@@ -53,8 +42,9 @@ class UpperTransportLayer extends EventEmitter<Events> {
     });
   }
 
-  handleOutgoing(message: AccessMessage) {
+  handleOutgoing(message) {
     debug('handling outgoing message %o', message);
+
     let payload = message.payload;
     const { opcode } = message;
     if (opcode > 0xffff) {
@@ -64,6 +54,7 @@ class UpperTransportLayer extends EventEmitter<Events> {
     } else {
       payload = Buffer.concat([write('uint8', opcode), message.payload]);
     }
+
     this.emit('outgoing', {
       appKey: message.appKey,
       meta: message.meta,

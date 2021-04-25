@@ -1,12 +1,8 @@
-// @flow
-
 const noble = require('@abandonware/noble');
 const debug = require('debug')('app:explorer');
-const jBinary = require('jbinary');
 
 const typeSet = require('./src/packets');
 const createBinary = require('./src/utils/binary');
-const { hex } = require('./src/utils/tags');
 require('./src/utils/add-debug-formatters');
 
 const NetworkLayer = require('./src/layers/network-layer');
@@ -14,8 +10,6 @@ const LowerLayer = require('./src/layers/lower-transport-layer');
 const UpperLayer = require('./src/layers/upper-transport-layer');
 const AccessLayer = require('./src/layers/access-layer');
 const Keychain = require('./src/keychain');
-
-import type { ProxyPDU } from './src/packet-types';
 
 const ProxyServiceUUID = '1828';
 const ProxyDataInCharUUID = '2add';
@@ -111,7 +105,7 @@ function connect(peripheral) {
         dataOut.subscribe(handleError);
         dataOut.on('data', data => {
           try {
-            const message: ProxyPDU = parse('ProxyPDU', data);
+            const message = parse('ProxyPDU', data);
             debug('incoming %o', message);
             if (message.type === 'Network') {
               networkLayer.handleIncoming(message.payload);

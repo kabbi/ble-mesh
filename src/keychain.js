@@ -1,31 +1,7 @@
-// @flow
-
 const { deriveNetworkKeys, deriveKeyID } = require('./utils/mesh-crypto');
 
-export type NetworkKey = {
-  data: Buffer,
-  nid: number,
-  encryptionKey: Buffer,
-  privacyKey: Buffer,
-};
-
-export type AppKey = {
-  data: Buffer,
-  alias: string,
-  id: number,
-};
-
-export type DeviceKey = {
-  data: Buffer,
-  address: number,
-};
-
 class Keychain {
-  networkKeys: NetworkKey[];
-  deviceKeys: { [address: number]: DeviceKey };
-  appKeys: { [alias: string]: AppKey };
-
-  constructor(networkKey?: Buffer) {
+  constructor(networkKey) {
     this.networkKeys = [];
     this.deviceKeys = {};
     this.appKeys = {};
@@ -34,7 +10,7 @@ class Keychain {
     }
   }
 
-  load(data: any): void {
+  load(data) {
     this.addNetworkKey(Buffer.from(data.network, 'hex'));
     for (const [address, key] of Object.entries(data.devices)) {
       this.addDeviceKey(+address, Buffer.from(key, 'hex'));
@@ -44,15 +20,14 @@ class Keychain {
     }
   }
 
-  addNetworkKey(data: Buffer) {
+  addNetworkKey(data) {
     this.networkKeys.push({
       ...deriveNetworkKeys(data),
       data,
     });
-    console.log(this.networkKeys);
   }
 
-  addAppKey(alias: string, data: Buffer) {
+  addAppKey(alias, data) {
     this.appKeys[alias] = {
       id: deriveKeyID(data),
       alias,
@@ -60,20 +35,19 @@ class Keychain {
     };
   }
 
-  addDeviceKey(address: number, data: Buffer) {
+  addDeviceKey(address, data) {
     this.deviceKeys[address] = {
       address,
       data,
     };
   }
 
-  getNetworkKeyByNID(nid: number): ?NetworkKey {
-    return this.networkKeys.find(key => key.nid === nid);
+  getNetworkKeyByNID(nid) {
+    return this.networkKeys.find((key) => key.nid === nid);
   }
 
-  getAppKeyByID(id: number): ?AppKey {
-    // $FlowFixMe
-    return Object.values(this.appKeys).find(key => key.id === id);
+  getAppKeyByID(id) {
+    return Object.values(this.appKeys).find((key) => key.id === id);
   }
 }
 

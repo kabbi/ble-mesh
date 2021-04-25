@@ -1,31 +1,14 @@
-// @flow
+const debug = require('debug')('mesh:layers:network');
 
-const debug = require("debug")("app:layers:network");
-
-const Keychain = require("../keychain");
-const binary = require("../utils/binary");
-const packetTypeSet = require("../packets");
-const EventEmitter = require("../utils/event-emitter");
-const {
-  deriveNetworkID,
-  deriveNetworkKeys,
-  deobfuscateMeta,
-  obfuscateMeta,
-  primitives
-} = require("../utils/mesh-crypto");
-
-import type { ProxyPDU, NetworkPDU, NetworkMeta } from "../packet-types";
-import type { NetworkMessage } from "../message-types";
-import type { NetworkKey } from "../keychain";
+const Keychain = require('../keychain');
+const binary = require('../utils/binary');
+const packetTypeSet = require('../packets');
+const EventEmitter = require('../utils/event-emitter');
+const { obfuscateMeta, primitives } = require('../utils/mesh-crypto');
 
 const { parse, write } = binary(packetTypeSet);
 
-type Events = {
-  incoming: [ProxyPDU],
-  outgoing: [Buffer]
-};
-
-class ProxyLayer extends EventEmitter<Events> {
+class ProxyLayer extends EventEmitter {
   keychain: Keychain;
 
   ivIndex: number;
@@ -41,13 +24,13 @@ class ProxyLayer extends EventEmitter<Events> {
   }
 
   getProxyNonce(seq: number) {
-    return write("Nonce", {
-      type: "Proxy",
+    return write('Nonce', {
+      type: 'Proxy',
       payload: {
         ivIndex: this.ivIndex,
         src: this.sourceAddress,
-        seq
-      }
+        seq,
+      },
     });
   }
 
@@ -58,41 +41,41 @@ class ProxyLayer extends EventEmitter<Events> {
   }
 
   handleIncoming(data: Buffer) {
-    debug("handling incoming message %h", data);
-    const message: ProxyPDU = parse("ProxyPDU", data);
-    debug("got incoming message %o", message);
-    this.emit("incoming", message);
+    debug('handling incoming message %h', data);
+    const message: ProxyPDU = parse('ProxyPDU', data);
+    debug('got incoming message %o', message);
+    this.emit('incoming', message);
   }
 
   handleOutgoing(message: NetworkMessage) {
-    debug("handling outgoing message %h", message.payload);
+    debug('handling outgoing message %h', message.payload);
     const networkPayload = Buffer.concat(
-      [write("uint16", message.meta.to), message.payload],
-      message.payload.length + 2
+      [write('uint16', message.meta.to), message.payload],
+      message.payload.length + 2,
     );
     const meta: NetworkMeta = {
-      ctl: message.meta.type === "control",
+      ctl: message.meta.type === 'control',
       seq: message.meta.seq || this.nextSeq(),
       ttl: message.meta.ttl || 100,
       src: message.meta.from,
-      dst: message.meta.to
+      dst: message.meta.to,
     };
     const firstKey = this.keychain.networkKeys[0];
     const { payload, mic } = primitives.encrypt(
       firstKey.encryptionKey,
       message.nonce || this.getProxyNonce(meta),
       networkPayload,
-      meta.ctl ? 8 : 4
+      meta.ctl ? 8 : 4,
     );
     const encryptedPart = Buffer.concat([payload, mic]);
-    const obfuscatedPart = write("NetworkMeta", meta);
+    const obfuscatedPart = write('NetworkMeta', meta);
     const pdu = obfuscateMeta(firstKey.privacyKey, this.ivIndex, {
       nid: firstKey.nid,
       ivi: this.ivIndex & 1,
       obfuscatedPart,
-      encryptedPart
+      encryptedPart,
     });
-    this.emit("outgoing", write("NetworkPDU", pdu));
+    this.emit('outgoing', write('NetworkPDU', pdu));
   }
 }
 

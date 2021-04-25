@@ -6,23 +6,20 @@ const { aesCmac } = require('node-aes-cmac');
 const aesCCM = require('@kabbi/aes-ccm');
 const aesjs = require('aes-js');
 
-import type { NetworkPDU } from '../packet-types';
-
-const cmac = (key: Buffer, message: Buffer) =>
-  aesCmac(key, message, { returnAsBuffer: true });
+const cmac = (key, message) => aesCmac(key, message, { returnAsBuffer: true });
 
 // Low-level crypto primitives, by Mesh Spec 1.0
 
 const ZeroBuffer = Buffer.alloc(16);
 
-const s1 = (message: string) => cmac(ZeroBuffer, Buffer.from(message));
+const s1 = message => cmac(ZeroBuffer, Buffer.from(message));
 
-const k1 = (key: Buffer, salt: Buffer, payload: Buffer): Buffer => {
+const k1 = (key, salt, payload) => {
   const temp = cmac(salt, key);
   return cmac(temp, payload);
 };
 
-const k2 = (key: Buffer, payload: Buffer) => {
+const k2 = (key, payload) => {
   const temp = cmac(s1('smk2'), key);
   const t1 = cmac(temp, Buffer.concat([payload, Buffer.from([0x01])]));
   const t2 = cmac(temp, Buffer.concat([t1, payload, Buffer.from([0x02])]));
@@ -30,32 +27,22 @@ const k2 = (key: Buffer, payload: Buffer) => {
   return Buffer.concat([t1, t2, t3]);
 };
 
-const k3 = (key: Buffer): Buffer => {
+const k3 = key => {
   const temp = cmac(s1('smk3'), key);
   return cmac(temp, Buffer.from('id64\x01')).slice(8, 16);
 };
 
-const k4 = (key: Buffer): number => {
+const k4 = key => {
   const temp = cmac(s1('smk4'), key);
   return cmac(temp, Buffer.from('id6\x01'))[15] & 0x3f;
 };
 
-const e = (key: Buffer, payload: Buffer): Buffer => {
+const e = (key, payload) => {
   const aes = new aesjs.AES(key);
   return Buffer.from(aes.encrypt(payload));
 };
 
-type EncryptionResult = {
-  payload: Buffer,
-  mic: Buffer,
-};
-
-const encrypt = (
-  key: Buffer,
-  nonce: Buffer,
-  payload: Buffer,
-  micLength: number,
-): EncryptionResult => {
+const encrypt = (key, nonce, payload, micLength) => {
   const result = aesCCM.encrypt(
     key,
     nonce,
@@ -69,12 +56,7 @@ const encrypt = (
   };
 };
 
-const decrypt = (
-  key: Buffer,
-  nonce: Buffer,
-  payload: Buffer,
-  mic: Buffer,
-): ?Buffer => {
+const decrypt = (key, nonce, payload, mic) => {
   const result = aesCCM.decrypt(key, nonce, payload, Buffer.alloc(0), mic);
   if (!result.auth_ok) {
     return null;
@@ -95,11 +77,11 @@ exports.primitives = {
 
 // High level mesh crypto functions
 
-exports.deriveKeyID = (key: Buffer): number => k4(key);
+exports.deriveKeyID = key => k4(key);
 
-exports.deriveNetworkID = (networkKey: Buffer): Buffer => k3(networkKey);
+exports.deriveNetworkID = networkKey => k3(networkKey);
 
-exports.deriveNetworkKeys = (networkKey: Buffer): * => {
+exports.deriveNetworkKeys = networkKey => {
   const data = k2(networkKey, Buffer.from([0]));
   return {
     nid: data[15] & 0x7f,
@@ -108,23 +90,15 @@ exports.deriveNetworkKeys = (networkKey: Buffer): * => {
   };
 };
 
-exports.deriveBeaconKey = (networkKey: Buffer): Buffer =>
+exports.deriveBeaconKey = networkKey =>
   k1(networkKey, s1('nkbk'), Buffer.from('id128\x01'));
 
-exports.obfuscateMeta = (
-  privacyKey: Buffer,
-  ivIndex: number,
-  message: NetworkPDU,
-): NetworkPDU => ({
+exports.obfuscateMeta = (privacyKey, ivIndex, message) => ({
   ...message,
   obfuscatedPart: exports.deobfuscateMeta(privacyKey, ivIndex, message),
 });
 
-exports.deobfuscateMeta = (
-  privacyKey: Buffer,
-  ivIndex: number,
-  message: NetworkPDU,
-): Buffer => {
+exports.deobfuscateMeta = (privacyKey, ivIndex, message) => {
   const ivBuffer = Buffer.alloc(4);
   ivBuffer.writeUInt32BE(ivIndex, 0);
   const privacyRandom = Buffer.concat([
@@ -139,10 +113,5 @@ exports.deobfuscateMeta = (
   );
 };
 
-type Auth = {
-  body: Buffer,
-  cmac: Buffer,
-};
-
-exports.verifyBeacon = (auth: Auth, beaconKey: Buffer): boolean =>
+exports.verifyBeacon = (auth, beaconKey) =>
   crypto.timingSafeEqual(cmac(beaconKey, auth.body).slice(0, 8), auth.cmac);

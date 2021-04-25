@@ -1,7 +1,3 @@
-// @flow
-
-const { hex } = require('./src/utils/tags');
-
 const NetworkLayer = require('./src/layers/network-layer');
 const LowerTransportLayer = require('./src/layers/lower-transport-layer');
 const UpperTransportLayer = require('./src/layers/upper-transport-layer');

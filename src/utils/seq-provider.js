@@ -1,9 +1,9 @@
-// @flow
 const fs = require('fs');
 
 const FileName = '.seqs';
 
-const map: Map<string, number> = new Map();
+const map = new Map();
+const seen = new Set();
 let transient = false;
 
 const load = () => {
@@ -12,7 +12,7 @@ const load = () => {
   }
   const data = fs.readFileSync(FileName, 'utf8');
   for (const [key, value] of Object.entries(JSON.parse(data))) {
-    map.set(key, ((value: any): number));
+    map.set(key, value);
   }
 };
 
@@ -23,23 +23,20 @@ const save = () => {
 
 load();
 
-exports.setTransient = (flag: boolean) => {
+exports.setTransient = flag => {
   transient = flag;
 };
 
-exports.acceptSeq = (key: string, seq: number): boolean => {
-  const current = map.get(key) || 0;
-  if (seq <= current) {
+exports.acceptSeq = (key, seq) => {
+  const v = `${key}-${seq}`;
+  if (seen.has(v)) {
     return false;
   }
-  map.set(key, seq);
-  if (!transient) {
-    save();
-  }
+  seen.add(v);
   return true;
 };
 
-exports.nextSeq = (key: string): number => {
+exports.nextSeq = key => {
   let current = map.get(key) || 0;
   current += 1;
   map.set(key, current);

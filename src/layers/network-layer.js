@@ -1,43 +1,25 @@
-// @flow
+const debug = require('debug')('mesh:layers:network');
 
-const debug = require('debug')('app:layers:network');
-
-const Keychain = require('../keychain');
 const binary = require('../utils/binary');
 const packetTypeSet = require('../packets');
 const { acceptSeq, nextSeq } = require('../utils/seq-provider');
 const EventEmitter = require('../utils/event-emitter');
 const {
-  deriveNetworkID,
-  deriveNetworkKeys,
   deobfuscateMeta,
   obfuscateMeta,
   primitives,
 } = require('../utils/mesh-crypto');
 
-import type { NetworkPDU, NetworkMeta } from '../packet-types';
-import type { NetworkMessage } from '../message-types';
-import type { NetworkKey } from '../keychain';
-
 const { parse, write } = binary(packetTypeSet);
 
-type Events = {
-  incoming: [NetworkMessage],
-  outgoing: [Buffer],
-};
-
-class NetworkLayer extends EventEmitter<Events> {
-  keychain: Keychain;
-
-  ivIndex: number;
-
-  constructor(keychain: Keychain) {
+class NetworkLayer extends EventEmitter {
+  constructor(keychain) {
     super();
     this.keychain = keychain;
     this.ivIndex = 0;
   }
 
-  getNetworkNonce(meta: NetworkMeta) {
+  getNetworkNonce(meta) {
     return write('Nonce', {
       type: 'Network',
       payload: {
@@ -47,21 +29,24 @@ class NetworkLayer extends EventEmitter<Events> {
     });
   }
 
-  handleIncoming(data: Buffer, nonce?: Buffer) {
+  handleIncoming(data, nonce) {
     debug('handling incoming message %h', data);
-    let pdu: NetworkPDU;
+
+    let pdu;
     try {
       pdu = parse('NetworkPDU', data);
     } catch (error) {
       debug('dropping malformed message %o', error);
       return;
     }
+
     const key = this.keychain.getNetworkKeyByNID(pdu.nid);
     if (!key) {
-      debug('dropping message with wrong nid, %d !== %d', pdu.nid);
+      debug('dropping message with wrong nid, %d', pdu.nid);
       return;
     }
-    const meta: NetworkMeta = parse(
+
+    const meta = parse(
       'NetworkMeta',
       deobfuscateMeta(key.privacyKey, this.ivIndex, pdu),
     );
@@ -72,15 +57,18 @@ class NetworkLayer extends EventEmitter<Events> {
       pdu.encryptedPart.slice(0, -micLength),
       pdu.encryptedPart.slice(-micLength),
     );
+
     if (!payload) {
       debug('dropping message cannot decrypt');
       return;
     }
+
     meta.dst = parse('uint16', payload);
     if (!acceptSeq(meta.dst.toString(16).padStart(4, '0'), meta.seq)) {
       debug('dropping duplicate message with seq %d', meta.seq);
       return;
     }
+
     const networkPayload = payload.slice(2);
     debug('got incoming message: %O, %h', meta, networkPayload);
     this.emit('incoming', {
@@ -95,18 +83,19 @@ class NetworkLayer extends EventEmitter<Events> {
     });
   }
 
-  handleOutgoing(message: NetworkMessage) {
+  handleOutgoing(message) {
     debug('handling outgoing message %h', message.payload);
     const networkPayload = Buffer.concat(
       [write('uint16', message.meta.to), message.payload],
       message.payload.length + 2,
     );
-    const meta: NetworkMeta = {
+    const meta = {
       ctl: message.meta.type === 'control',
       seq:
-        message.meta.seq ||
-        nextSeq(message.meta.to.toString(16).padStart(4, '0')),
-      ttl: message.meta.ttl || 100,
+        message.meta.seq != null
+          ? message.meta.seq
+          : nextSeq(message.meta.to.toString(16).padStart(4, '0')),
+      ttl: message.meta.ttl != null ? message.meta.ttl : 100,
       src: message.meta.from,
       dst: message.meta.to,
     };

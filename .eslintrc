@@ -1,0 +1,8 @@
+{
+  "settings": {
+    "react": {
+      "version": "16"
+    }
+  },
+  "extends": ["react-app"]
+}

@@ -1,74 +1,33 @@
-// @flow
+const debug = require('debug')('mesh:layers:lower');
 
-const debug = require('debug')('app:layers:lower');
-
-const Keychain = require('../keychain');
 const binary = require('../utils/binary');
 const packetTypeSet = require('../packets');
 const { nextSeq } = require('../utils/seq-provider');
 const EventEmitter = require('../utils/event-emitter');
-const { deriveKeyID, primitives } = require('../utils/mesh-crypto');
-
-import type {
-  NetworkPDU,
-  NetworkMeta,
-  AccessLowerTransportPDU,
-  ControlLowerTransportPDU,
-  SegmentedLowerTransportPDU,
-} from '../packet-types';
-
-import type {
-  NetworkMessage,
-  LowerTransportMessage,
-  Metadata,
-} from '../message-types';
-import type { AppKey } from '../keychain';
+const { primitives } = require('../utils/mesh-crypto');
 
 const { parse, write } = binary(packetTypeSet);
 
-type Events = {
-  incoming: [LowerTransportMessage],
-  outgoing: [NetworkMessage],
-};
-
-class LowerTransportLayer extends EventEmitter<Events> {
-  keychain: Keychain;
-
-  ivIndex: number;
-
-  receivedSegments: {
-    [seqAuth: number]: {
-      longMic: boolean,
-      meta: NetworkMeta,
-      parts: Buffer[],
-    },
-  };
-
-  constructor(keychain: Keychain) {
+class LowerTransportLayer extends EventEmitter {
+  constructor(keychain) {
     super();
     this.keychain = keychain;
     this.receivedSegments = {};
     this.ivIndex = 0;
   }
 
-  handleIncoming(message: NetworkMessage) {
+  handleIncoming(message) {
     const { meta, payload } = message;
     debug('handling incoming message %h', message.payload);
     if (message.meta.type === 'control') {
-      const pdu: ControlLowerTransportPDU = parse(
-        'ControlLowerTransportPDU',
-        payload,
-      );
+      const pdu = parse('ControlLowerTransportPDU', payload);
       if (pdu.segmented) {
         this.handleIncomingSegment(meta, false, pdu);
       } else {
         this.handleIncomingControl(meta, pdu);
       }
     } else {
-      const pdu: AccessLowerTransportPDU = parse(
-        'AccessLowerTransportPDU',
-        payload,
-      );
+      const pdu = parse('AccessLowerTransportPDU', payload);
       if (pdu.segmented) {
         this.handleIncomingSegment(meta, pdu.longMIC, pdu);
       } else {
@@ -77,7 +36,7 @@ class LowerTransportLayer extends EventEmitter<Events> {
     }
   }
 
-  handleOutgoing(message: LowerTransportMessage) {
+  handleOutgoing(message) {
     if (message.type === 'control') {
       debug('outgoing control messages is not yet supported');
       return;
@@ -123,11 +82,8 @@ class LowerTransportLayer extends EventEmitter<Events> {
     });
   }
 
-  handleIncomingSegment(
-    meta: Metadata,
-    longMic: boolean,
-    message: SegmentedLowerTransportPDU,
-  ) {
+  handleIncomingSegment(meta, longMic, message) {
+    debug('handling incoming segment %o', message);
     const info = this.receivedSegments[message.seqAuth] || {
       parts: Array(message.segmentCount + 1).fill(null),
       longMic,
@@ -163,20 +119,18 @@ class LowerTransportLayer extends EventEmitter<Events> {
         opcode: 0,
         payload: write('SegmentAcknowledgement', {
           byFriendlyNode: false,
-          seqAuth: 0, // FIXME: What to write here?
+          seqAuth: message.seqAuth,
           blockAck: (1 << info.parts.length) - 1,
         }),
       }),
     });
     const payload = Buffer.concat(info.parts);
     if (meta.type === 'control') {
-      // $FlowFixMe how do we generalize segmented types?
       this.handleIncomingControl(info.meta, {
         ...message,
         payload,
       });
     } else {
-      // $FlowFixMe how do we generalize segmented types?
       this.handleIncomingAccess(info.meta, {
         ...message,
         payload,
@@ -184,9 +138,10 @@ class LowerTransportLayer extends EventEmitter<Events> {
     }
   }
 
-  handleIncomingAccess(meta: Metadata, message: AccessLowerTransportPDU) {
-    const deviceKey = this.keychain.deviceKeys[meta.to];
-    const appKey: ?AppKey = message.appKeyUsed
+  handleIncomingAccess(meta, message) {
+    const deviceKey =
+      this.keychain.deviceKeys[meta.from] || this.keychain.deviceKeys[meta.to];
+    const appKey = message.appKeyUsed
       ? this.keychain.getAppKeyByID(message.appKeyID)
       : null;
     if (message.appKeyUsed && !appKey) {
@@ -194,7 +149,7 @@ class LowerTransportLayer extends EventEmitter<Events> {
       return;
     }
     if (!message.appKeyUsed && !deviceKey) {
-      debug('dropping message with no device key %d', meta.to);
+      debug('dropping message with no device key %d', meta.from);
       return;
     }
     const micLength = message.segmented && message.longMIC ? 8 : 4;
@@ -225,16 +180,18 @@ class LowerTransportLayer extends EventEmitter<Events> {
     });
   }
 
-  handleIncomingControl(meta: Metadata, message: ControlLowerTransportPDU) {
+  handleIncomingControl(meta, message) {
     // TODO: Pass other-than-zero opcode messages to upper transport layer
     if (message.opcode === 0x0a) {
       debug('got heartbeat', parse('Heartbeat', message.payload));
       return;
     }
+
     if (message.opcode !== 0) {
       debug('dropping control message with unsupported opcode', message.opcode);
       return;
     }
+
     // TODO: Handle segment ack
   }
 }

@@ -1,15 +1,15 @@
 const jBinary = require('jbinary');
 
 const PropertyType = {
-  0x4E: 'PresentAmbientLightLevel',
+  0x4e: 'PresentAmbientLightLevel',
   0x54: 'PresentDeviceOperatingTemperature',
-  0x75: 'PrecisePresentAmbientTemperature'
+  0x75: 'PrecisePresentAmbientTemperature',
 };
 
 exports.messages = {
   0x52: 'SensorStatus',
   0x8230: 'SensorDescriptorGet',
-  0x8231: 'SensorGet'
+  0x8231: 'SensorGet',
 };
 
 exports.typeSet = {
@@ -24,7 +24,7 @@ exports.typeSet = {
     },
     write(value) {
       this.baseWrite(value / this.factor);
-    }
+    },
   }),
 
   // Property values
@@ -50,12 +50,12 @@ exports.typeSet = {
         const propertyType = PropertyType[propertyId];
         const valueBinary = this.binary.slice(
           this.binary.tell(),
-          this.binary.tell() + length + 1
+          this.binary.tell() + length + 1,
         );
         this.binary.skip(length + 1);
         result.push({
           propertyId: propertyType || propertyId,
-          value: valueBinary.read(propertyType || 'blob')
+          value: valueBinary.read(propertyType || 'blob'),
         });
       }
       return result;
@@ -63,7 +63,7 @@ exports.typeSet = {
     write(values) {
       this.binary.write('uint16', values.length);
       this.binary.write(['array', this.itemType], values);
-    }
+    },
   }),
-  SensorGet: {}
+  SensorGet: {},
 };
