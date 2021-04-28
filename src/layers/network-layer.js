@@ -94,7 +94,7 @@ class NetworkLayer extends EventEmitter {
       seq:
         message.meta.seq != null
           ? message.meta.seq
-          : nextSeq(message.meta.to.toString(16).padStart(4, '0')),
+          : nextSeq(message.meta.from.toString(16).padStart(4, '0')),
       ttl: message.meta.ttl != null ? message.meta.ttl : 100,
       src: message.meta.from,
       dst: message.meta.to,

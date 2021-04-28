@@ -50,7 +50,7 @@ class LowerTransportLayer extends EventEmitter {
     }
     const seq =
       message.meta.seq ||
-      nextSeq(message.meta.to.toString(16).padStart(4, '0'));
+      nextSeq(message.meta.from.toString(16).padStart(4, '0'));
     const result = primitives.encrypt(
       key.data,
       write('Nonce', {
