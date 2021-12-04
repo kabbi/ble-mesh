@@ -13,6 +13,14 @@ class AccessLayer extends EventEmitter {
     this.messagesLookup = invert(messages);
   }
 
+  registerModel(model) {
+    Object.assign(typeSet, model.typeSet);
+    for (const [opcode, typeName] of Object.entries(model.messages)) {
+      this.messagesLookup[typeName] = opcode;
+      messages[opcode] = typeName;
+    }
+  }
+
   handleIncoming(message) {
     debug('handling incoming message %o', message);
 
