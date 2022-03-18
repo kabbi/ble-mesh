@@ -37,10 +37,13 @@ class LowerTransportLayer extends EventEmitter {
   }
 
   handleOutgoing(message) {
+    debug('handling outgoing message %o', message);
+
     if (message.type === 'control') {
       debug('outgoing control messages is not yet supported');
       return;
     }
+
     const key = message.appKey
       ? this.keychain.appKeys[message.appKey]
       : this.keychain.deviceKeys[message.meta.to];
@@ -48,9 +51,18 @@ class LowerTransportLayer extends EventEmitter {
       debug('dropping outgoing messages no key');
       return;
     }
+
+    if (message.payload.length >= 12) {
+      // TODO: DRY enctiption, we should segment already encrypted message
+      // (and update threshold to 16 bytes, after encryption)
+      this.handleOutgoingSegments(message, key);
+      return;
+    }
+
     const seq =
       message.meta.seq ||
       nextSeq(message.meta.from.toString(16).padStart(4, '0'));
+
     const result = primitives.encrypt(
       key.data,
       write('Nonce', {
@@ -64,14 +76,16 @@ class LowerTransportLayer extends EventEmitter {
         },
       }),
       message.payload,
-      4, // FIXME: This works only for unsegmented messages
+      4,
     );
+
     const payload = write('AccessLowerTransportPDU', {
       segmented: false,
       appKeyUsed: Boolean(message.appKey),
       appKeyID: message.appKey ? key.id : 0,
       payload: Buffer.concat([result.payload, result.mic]),
     });
+
     this.emit('outgoing', {
       payload,
       meta: {
@@ -82,6 +96,72 @@ class LowerTransportLayer extends EventEmitter {
     });
   }
 
+  handleOutgoingSegments(message, key) {
+    const fromAddr = message.meta.from.toString(16).padStart(4, '0');
+    let firstSeq = message.meta.seq || nextSeq(fromAddr);
+
+    const result = primitives.encrypt(
+      key.data,
+      write('Nonce', {
+        type: message.appKey ? 'Application' : 'Device',
+        payload: {
+          aszMic: false, // Sync with longMic
+          ivIndex: this.ivIndex,
+          src: message.meta.from,
+          dst: message.meta.to,
+          seq: firstSeq,
+        },
+      }),
+      message.payload,
+      4, // Sync with longMic
+    );
+
+    const segmentPayload = Buffer.concat([result.payload, result.mic]);
+
+    const segmentCount = Math.ceil(segmentPayload.length / 12);
+    const messages = new Array(segmentCount).fill().map((v, index) => {
+      const seq =
+        index === 0
+          ? firstSeq
+          : message.meta.seq
+          ? message.meta.seq + index + 1
+          : nextSeq(fromAddr); // Ugh, so ugly
+
+      const payload = write('AccessLowerTransportPDU', {
+        segmented: true,
+        longMIC: false, // Assume false for now
+        seqAuth: firstSeq, // First 13 bits of it
+        segmentOffset: index,
+        segmentCount: segmentCount - 1,
+        appKeyUsed: Boolean(message.appKey),
+        appKeyID: message.appKey ? key.id : 0,
+        payload: segmentPayload.slice(index * 12, (index + 1) * 12),
+      });
+
+      return {
+        payload,
+        meta: {
+          ...message.meta,
+          type: 'access',
+          seq,
+        },
+      };
+    });
+
+    const sendNext = () => {
+      if (messages.length === 0) {
+        return;
+      }
+
+      const message = messages.shift();
+      this.emit('outgoing', message);
+      setTimeout(sendNext, 10);
+      sendNext();
+    };
+
+    sendNext();
+  }
+
   handleIncomingSegment(meta, longMic, message) {
     debug('handling incoming segment %o', message);
     const info = this.receivedSegments[message.seqAuth] || {
@@ -89,6 +169,7 @@ class LowerTransportLayer extends EventEmitter {
       longMic,
       meta,
     };
+
     this.receivedSegments[message.seqAuth] = info;
     if (message.segmentOffset >= info.parts.length) {
       debug(
@@ -98,14 +179,17 @@ class LowerTransportLayer extends EventEmitter {
       );
       return;
     }
+
     if (info.parts[message.segmentOffset]) {
       debug('dropping segment already received', message.segmentOffset);
       return;
     }
+
     info.parts[message.segmentOffset] = message.payload;
     if (!info.parts.every(Boolean)) {
       return;
     }
+
     // TODO: Send acks more often
     this.emit('outgoing', {
       meta: {
@@ -124,6 +208,7 @@ class LowerTransportLayer extends EventEmitter {
         }),
       }),
     });
+
     const payload = Buffer.concat(info.parts);
     if (meta.type === 'control') {
       this.handleIncomingControl(info.meta, {
@@ -144,6 +229,7 @@ class LowerTransportLayer extends EventEmitter {
     const appKey = message.appKeyUsed
       ? this.keychain.getAppKeyByID(message.appKeyID)
       : null;
+
     if (message.appKeyUsed && !appKey) {
       debug('dropping message with no app key %d', message.appKeyID);
       return;
@@ -152,6 +238,7 @@ class LowerTransportLayer extends EventEmitter {
       debug('dropping message with no device key %d', meta.from);
       return;
     }
+
     const micLength = message.segmented && message.longMIC ? 8 : 4;
     const payload = primitives.decrypt(
       appKey ? appKey.data : deviceKey.data,
@@ -168,10 +255,12 @@ class LowerTransportLayer extends EventEmitter {
       message.payload.slice(0, -micLength),
       message.payload.slice(-micLength),
     );
+
     if (!payload) {
       debug('dropping message cannot decrypt');
       return;
     }
+
     this.emit('incoming', {
       appKey: appKey ? appKey.alias : undefined,
       type: 'access',

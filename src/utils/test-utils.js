@@ -1,5 +1,7 @@
 require('./add-debug-formatters');
 
+jest.mock('./seq-provider');
+
 expect.extend({
   toBeHex(received, argument) {
     const pass = received.toString('hex') === argument;

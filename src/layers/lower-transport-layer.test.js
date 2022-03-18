@@ -53,4 +53,82 @@ describe('lower-transport-layer', () => {
       payload: hex`00000000000007`,
     });
   });
+
+  it('transmits unsegmented access message', () => {
+    const layer = new LowerTransportLayer(keychain);
+    const listener = jest.fn();
+    layer.on('outgoing', listener);
+    layer.handleOutgoing({
+      meta: { ttl: 100, seq: 1, from: 0x7ff, to: 1, type: 'access' },
+      payload: hex`112233`,
+    });
+    expect(listener).toHaveBeenCalledWith({
+      meta: { ttl: 100, seq: 1, from: 0x7ff, to: 1, type: 'access' },
+      payload: hex`00bb2a3e7a00a801`,
+    });
+  });
+
+  it('transmits one message when payload fits', () => {
+    const layer = new LowerTransportLayer(keychain);
+    const listener = jest.fn();
+    layer.on('outgoing', listener);
+    layer.handleOutgoing({
+      meta: { ttl: 100, seq: 1, from: 0x7ff, to: 1, type: 'access' },
+      payload: Buffer.alloc(15),
+    });
+    expect(listener).toHaveBeenCalledTimes(1);
+  });
+
+  it('transmits two messages when payload does not fit', () => {
+    const layer = new LowerTransportLayer(keychain);
+    const listener = jest.fn();
+    layer.on('outgoing', listener);
+    layer.handleOutgoing({
+      meta: { ttl: 100, seq: 1, from: 0x7ff, to: 1, type: 'access' },
+      payload: Buffer.alloc(16),
+    });
+    expect(listener).toHaveBeenCalledTimes(2);
+  });
+
+  it('loops around unsegmented access', () => {
+    const layer = new LowerTransportLayer(keychain);
+    const listener = jest.fn();
+    layer.on('incoming', listener);
+
+    // Round, baby, right 'round
+    layer.on('outgoing', message => layer.handleIncoming(message));
+
+    layer.handleOutgoing({
+      meta: { ttl: 100, seq: 1, from: 0x7ff, to: 1, type: 'access' },
+      payload: hex`112233`,
+    });
+
+    expect(listener).toHaveBeenCalledWith({
+      appKey: undefined,
+      type: 'access',
+      meta: { ttl: 100, seq: 1, from: 0x7ff, to: 1, type: 'access' },
+      payload: hex`112233`,
+    });
+  });
+
+  it('loops around segmented access', () => {
+    const layer = new LowerTransportLayer(keychain);
+    const listener = jest.fn();
+    layer.on('incoming', listener);
+
+    // Round, baby, right 'round
+    layer.on('outgoing', message => layer.handleIncoming(message));
+
+    layer.handleOutgoing({
+      meta: { ttl: 100, seq: 1, from: 0x7ff, to: 1, type: 'access' },
+      payload: hex`112233000000000000000000000000112233`, // longer then 15
+    });
+
+    expect(listener).toHaveBeenCalledWith({
+      appKey: undefined,
+      type: 'access',
+      meta: { ttl: 100, seq: 1, from: 0x7ff, to: 1, type: 'access' },
+      payload: hex`112233000000000000000000000000112233`,
+    });
+  });
 });

@@ -1,5 +1,3 @@
-const jBinary = require('jbinary');
-
 const BitFlags = require('../utils/jbinary/bit-flags');
 const VarInt = require('../utils/jbinary/var-int');
 
